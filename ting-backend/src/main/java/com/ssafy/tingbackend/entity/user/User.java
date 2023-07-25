@@ -14,10 +14,8 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@AllArgsConstructor
-@ToString(of = {"id", "email", "nickname", "gender", "region", "jobCode", "drinkingCode", "religionCode", "userHobbys"})
+@ToString(of = {"id", "email", "nickname", "gender"})
 @DynamicInsert
 public class User extends BaseTimeEntity {
 
@@ -29,15 +27,12 @@ public class User extends BaseTimeEntity {
     private String name;
     private String nickname;
     private String phoneNumber;
-
-    @Column(length = 1)
-    private String gender;
-
+    @Column(columnDefinition = "char(1)")
+    private Character gender;
     @Enumerated(EnumType.STRING)
     private SidoType region;
     private LocalDate birth;
     private String profileImage;
-
     @ColumnDefault("0")
     private Long point;
     private Integer height;
@@ -59,13 +54,14 @@ public class User extends BaseTimeEntity {
     @OneToOne
     private AdditionalInfo smokingCode;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @OneToMany(mappedBy = "user")
     List<UserHobby> userHobbys = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @OneToMany(mappedBy = "user")
     List<UserStyle> userStyles = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @OneToMany(mappedBy = "user")
     List<UserPersonality> userPersonalities = new ArrayList<>();
 
+    //not null
+    // email password name nickname phone gender region birth point created isremoved
+//    @Column(nullable = false)
 }
