@@ -28,14 +28,4 @@ public enum SidoType {
     public String getName() {
         return name;
     }
-
-    // name에 해당하는 Enum 객체 반환
-    public static SidoType getEnumType(String name) {
-        SidoType sidoType = null;
-        for (SidoType sido : SidoType.values()) {
-            if(sido.getName().equals(name)) sidoType = sido;
-        }
-
-        return sidoType;
-    }
 }
