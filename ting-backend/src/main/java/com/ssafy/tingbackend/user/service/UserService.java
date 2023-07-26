@@ -1,7 +1,5 @@
 package com.ssafy.tingbackend.user.service;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.ssafy.tingbackend.common.exception.CommonException;
 import com.ssafy.tingbackend.common.exception.ExceptionType;
 import com.ssafy.tingbackend.common.security.JwtAuthenticationProvider;
@@ -73,45 +71,51 @@ public class UserService {
         // 지역 정보 enum 타입으로 변환
         user.setRegion(SidoType.getEnumType(userDto.getRegion()));
 
-        // ====선택정보 빈값으로 올때 고려해서 코드 바꾸기====
         // mbti, 음주, 직업, 종교, 흡연 AdditionalInfo 객체로 변환
-        user.setMbtiCode(getAdditionalInfo(userDto.getMbtiCode()));
-        user.setDrinkingCode(getAdditionalInfo(userDto.getDrinkingCode()));
-        user.setJobCode(getAdditionalInfo(userDto.getJobCode()));
-        user.setReligionCode(getAdditionalInfo(userDto.getReligionCode()));
-        user.setSmokingCode(getAdditionalInfo(userDto.getSmokingCode()));
+        if (userDto.getMbtiCode() != null) user.setMbtiCode(getAdditionalInfo(userDto.getMbtiCode()));
+        if (userDto.getDrinkingCode() != null) user.setDrinkingCode(getAdditionalInfo(userDto.getDrinkingCode()));
+        if (userDto.getJobCode() != null) user.setJobCode(getAdditionalInfo(userDto.getJobCode()));
+        if (userDto.getReligionCode() != null) user.setReligionCode(getAdditionalInfo(userDto.getReligionCode()));
+        if (userDto.getSmokingCode() != null) user.setSmokingCode(getAdditionalInfo(userDto.getSmokingCode()));
+
+        userRepository.save(user); // DB에 저장
 
         // 취미, 성격, 선호 스타일 각 매핑 객체로 변환
-        ArrayList<UserHobby> userHobbies = new ArrayList<>();
-        for (Long hobbyCode : userDto.getHobbyCodeList()) {
-            UserHobby userHobby = new UserHobby();
-            userHobby.setUser(user);
-            userHobby.setAdditionalInfo(getAdditionalInfo(hobbyCode));
-            userHobbies.add(userHobby);
+        if (userDto.getHobbyCodeList().size() > 0) {
+            ArrayList<UserHobby> userHobbies = new ArrayList<>();
+            for (Long hobbyCode : userDto.getHobbyCodeList()) {
+                UserHobby userHobby = new UserHobby();
+                userHobby.setUser(user);
+                userHobby.setAdditionalInfo(getAdditionalInfo(hobbyCode));
+                userHobbies.add(userHobby);
+            }
+
+            userHobbyRepository.saveAll(userHobbies); // DB에 저장
         }
 
-        ArrayList<UserPersonality> userPersonalities = new ArrayList<>();
-        for (Long personalityCode : userDto.getPersonalityCodeList()) {
-            UserPersonality userPersonality = new UserPersonality();
-            userPersonality.setUser(user);
-            userPersonality.setAdditionalInfo(getAdditionalInfo(personalityCode));
-            userPersonalities.add(userPersonality);
+        if (userDto.getPersonalityCodeList().size() > 0) {
+            ArrayList<UserPersonality> userPersonalities = new ArrayList<>();
+            for (Long personalityCode : userDto.getPersonalityCodeList()) {
+                UserPersonality userPersonality = new UserPersonality();
+                userPersonality.setUser(user);
+                userPersonality.setAdditionalInfo(getAdditionalInfo(personalityCode));
+                userPersonalities.add(userPersonality);
+            }
+
+            userPersonalityRepository.saveAll(userPersonalities); // DB에 저장
         }
 
-        ArrayList<UserStyle> userStyles = new ArrayList<>();
-        for (Long styleCode : userDto.getStyleCodeList()) {
-            UserStyle userStyle = new UserStyle();
-            userStyle.setUser(user);
-            userStyle.setAdditionalInfo(getAdditionalInfo(styleCode));
-            userStyles.add(userStyle);
-        }
-        System.out.println(user);
+        if (userDto.getStyleCodeList().size() > 0) {
+            ArrayList<UserStyle> userStyles = new ArrayList<>();
+            for (Long styleCode : userDto.getStyleCodeList()) {
+                UserStyle userStyle = new UserStyle();
+                userStyle.setUser(user);
+                userStyle.setAdditionalInfo(getAdditionalInfo(styleCode));
+                userStyles.add(userStyle);
+            }
 
-        // DB에 저장
-        userRepository.save(user);
-        userHobbyRepository.saveAll(userHobbies);
-        userPersonalityRepository.saveAll(userPersonalities);
-        userStyleRepository.saveAll(userStyles);
+            userStyleRepository.saveAll(userStyles); // DB에 저장
+        }
     }
 
     public boolean checkNickname(String nickname) {
@@ -193,6 +197,11 @@ public class UserService {
 
     public void sendEmail(String email) {
         long verifiedCode = Math.round(100000 + Math.random() * 899999);
+        if (emailRepository.findByEmail(email).isPresent()) {
+            EmailAuthDto emailAuthDto = emailRepository.findByEmail(email)
+                    .orElseThrow(() -> new CommonException(ExceptionType.EMAIL_NOT_FOUND));
+            emailRepository.delete(emailAuthDto);
+        }
         insertCode(email, Long.toString(verifiedCode));
         // 이메일 발신될 데이터 적재
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
@@ -205,9 +214,14 @@ public class UserService {
         javaMailSender.send(simpleMailMessage);
     }
 
-    public EmailAuthDto getEmailCode(String email) {
-        EmailAuthDto emailAuthDto = emailRepository.findByEmail(email);
-        return emailAuthDto;
+    public void validateEmailCode(String email, String authCode) {
+        EmailAuthDto emailAuthDto = emailRepository.findByEmail(email)
+                .orElseThrow(() -> new CommonException(ExceptionType.EMAIL_NOT_FOUND));
+
+        if (!emailAuthDto.getKey().equals(authCode)) {
+            throw new CommonException(ExceptionType.EMAIL_CODE_NOT_MATCH);
+        }
+        emailRepository.delete(emailAuthDto);
     }
 
     public void insertCode(String email, String code) {
@@ -215,8 +229,55 @@ public class UserService {
         emailRepository.save(emailAuthDto);
     }
 
-    public void deleteEmailCode(EmailAuthDto emailAuthDto) {
-        emailRepository.delete(emailAuthDto);
+    public boolean checkDuplicatedEmail(String email) {
+        if (userRepository.findByEmail(email).isPresent()) return true;
+        else return false;
     }
 
+    @Transactional
+    public void modifyUser(Long userId, UserDto userDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CommonException(ExceptionType.USER_NOT_FOUND));
+
+        log.info("{} 유저 정보 수정 시도", user.getEmail());
+
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setRegion(SidoType.getEnumType(userDto.getRegion()));
+        user.setProfileImage(userDto.getProfileImage());
+        user.setHeight(userDto.getHeight());
+        user.setIntroduce(userDto.getIntroduce());
+        user.setJobCode(getAdditionalInfo(userDto.getJobCode()));
+        user.setDrinkingCode(getAdditionalInfo(userDto.getDrinkingCode()));
+        user.setReligionCode(getAdditionalInfo(userDto.getReligionCode()));
+        user.setMbtiCode(getAdditionalInfo(userDto.getMbtiCode()));
+        user.setSmokingCode(getAdditionalInfo(userDto.getSmokingCode()));
+
+        userHobbyRepository.deleteAll(user.getUserHobbys());
+        userStyleRepository.deleteAll(user.getUserStyles());
+        userPersonalityRepository.deleteAll(user.getUserPersonalities());
+
+        ArrayList<UserHobby> userHobbies = new ArrayList<>();
+        ArrayList<UserStyle> userStyles = new ArrayList<>();
+        ArrayList<UserPersonality> userPersonalities = new ArrayList<>();
+
+        userDto.getHobbyCodeList().forEach(hobbyCode -> userHobbies.add(UserHobby.builder()
+                .user(user)
+                .additionalInfo(getAdditionalInfo(hobbyCode))
+                .build())
+        );
+        userDto.getStyleCodeList().forEach(styleCode -> userStyles.add(UserStyle.builder()
+                .user(user)
+                .additionalInfo(getAdditionalInfo(styleCode))
+                .build())
+        );
+        userDto.getPersonalityCodeList().forEach(personalityCode -> userPersonalities.add(UserPersonality.builder()
+                .user(user)
+                .additionalInfo(getAdditionalInfo(personalityCode))
+                .build())
+        );
+
+        userHobbyRepository.saveAll(userHobbies);
+        userStyleRepository.saveAll(userStyles);
+        userPersonalityRepository.saveAll(userPersonalities);
+    }
 }

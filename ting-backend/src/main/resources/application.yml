@@ -32,12 +32,13 @@ spring:
   # mongoDB
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: ting
+      host: i9b107.p.ssafy.io
+      port: 5158
+      database: admin
       authentication-database: admin
-  #      username: qweqwe
-  #      password: 123
+      auto-index-creation: true
+      username: ting-mongo
+      password: 1q2w3e4r-ting-mongo
 
 jwt:
   secretKey: JwtSecretKeyForShortDate
