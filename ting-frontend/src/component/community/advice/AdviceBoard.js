@@ -113,12 +113,12 @@ function AdviceBoard() {
     <div className={styles.adviceBoardBackground}>
     <div className={styles.adviceBoardContainer}>
       <Sidebar />
-      <div>
+      <div className={styles.tableTop}>
       <button className={styles.createButton} onClick={handleCreateClick}>
         글 작성하기
       </button>
       </div>
-      <div>
+      <div className={styles.tableContaining}>
       <table className={styles.adviceTable}>
         <thead>
           <tr>
