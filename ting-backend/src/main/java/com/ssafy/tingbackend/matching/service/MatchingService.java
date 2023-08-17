@@ -74,26 +74,44 @@ public class MatchingService {
         socketInfos.get(socketSessionId).setUser(user);
 
         // 유저 성별에 해당하는 대기열에 넣기
-        Integer time;
-        if (user.getGender().equals("M")) {
+        int time = 60 + Math.round((float) Math.random() * 60); // 1분 ~ 2분
+
+        // 선택정보 입력개수에 따른 대기시간 계산 (최대 1분 20초)
+        time += calcAdditionalInfo(user);
+
+        if ("M".equals(user.getGender())) {
             mQueue.add(socketSessionId);
 
-            // 이성의 큐가 비어있는 경우 3분, 아닌 경우 1분
-            if (fQueue.size() == 0) time = 180;
-            else time = 60;
+            // 이성의 대기 큐 인원수에 따른 대기시간 계산
+            if (fQueue.isEmpty()) {
+                time += 60;
+            } else if (fQueue.size() < 5) {
+                time += 10;
+            } else if (fQueue.size() < 10) {
+                time += 3;
+            } else {
+                time = Math.max(time - 60, 0);
+            }
         } else {
             fQueue.add(socketSessionId);
 
-            // 이성의 큐가 비어있는 경우 3분, 아닌 경우 1분
-            if (mQueue.size() == 0) time = 180;
-            else time = 60;
+            // 이성의 대기 큐 인원수에 따른 대기시간 계산
+            if (mQueue.isEmpty()) {
+                time += 60;
+            } else if (mQueue.size() < 5) {
+                time += 10;
+            } else if (mQueue.size() < 10) {
+                time += 3;
+            } else {
+                time = Math.max(time - 60, 0);
+            }
         }
 
         log.info("대기열에 추가 - {}, userNickname - {}", socketSessionId, user.getNickname());
 
         // 예상 대기 시간 전송
         Map<String, String> messageData = new HashMap<>();
-        messageData.put("time", time.toString());
+        messageData.put("time", String.valueOf(time));
         WebSocketMessage message = new WebSocketMessage("expectedTime", messageData);
         TextMessage textMessage = new TextMessage(message.toJson());
         socketInfos.get(socketSessionId).getSession().sendMessage(textMessage);
@@ -142,7 +160,7 @@ public class MatchingService {
             }
 
             // 임시 테스트 코드
-            maxScore = 100;
+//            maxScore = 100;
             // 임시 테스트 코드
 
             if (mSessionId != null && maxScore >= 50) {
@@ -525,7 +543,8 @@ public class MatchingService {
             matchingUserRepository.save(new MatchingUser(matching, socketInfos.get(pairSocketSessionId).getUser()));
 
             // 매칭 질문 생성하여 저장
-            Question[] questions = getQuestions();
+//            Question[] questions = getQuestions();
+            Question[] questions = getStaticQuestions();
             List<MatchingQuestion> matchingQuestions = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
                 matchingQuestions.add(new MatchingQuestion(matching, questions[i], i + 1));
@@ -591,6 +610,38 @@ public class MatchingService {
 
         matchingInfo.setIsValidate(false);
         matchingInfoRepository.save(matchingInfo);
+    }
+
+
+    public Question[] getStaticQuestions() {
+        List<Question> selectedQuestions = new ArrayList<>();
+        Question question = questionRepository.findById(6L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(12L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(50L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(17L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(63L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(57L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(91L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(34L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(3L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+        question = questionRepository.findById(5L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
+
+        Question[] questions = new Question[10];
+        for (int i = 0; i < 10; i++) {
+            questions[i] = selectedQuestions.get(i);
+        }
+
+        return questions;
     }
 
     public Question[] getQuestions() {
@@ -659,4 +710,33 @@ public class MatchingService {
         selectedQuestions.add(curQuestions.get(number));
     }
 
+    private int calcAdditionalInfo(User user) {
+        int addTime = 80;
+        if (user.getJobCode() != null) {
+            addTime -= 10;
+        }
+        if (user.getDrinkingCode() != null) {
+            addTime -= 10;
+        }
+        if (user.getReligionCode() != null) {
+            addTime -= 10;
+        }
+        if (user.getMbtiCode() != null) {
+            addTime -= 10;
+        }
+        if (user.getSmokingCode() != null) {
+            addTime -= 10;
+        }
+        if (user.getUserHobbys() != null && user.getUserHobbys().size() != 0) {
+            addTime -= 10;
+        }
+        if (user.getUserStyles() != null && user.getUserStyles().size() != 0) {
+            addTime -= 10;
+        }
+        if (user.getUserPersonalities() != null && user.getUserPersonalities().size() != 0) {
+            addTime -= 10;
+        }
+
+        return addTime;
+    }
 }
