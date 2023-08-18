@@ -619,6 +619,8 @@ public class MatchingService {
         selectedQuestions.add(question);
         question = questionRepository.findById(12L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
         selectedQuestions.add(question);
+        question = questionRepository.findById(26L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
+        selectedQuestions.add(question);
         question = questionRepository.findById(50L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
         selectedQuestions.add(question);
         question = questionRepository.findById(17L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
@@ -626,8 +628,6 @@ public class MatchingService {
         question = questionRepository.findById(63L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
         selectedQuestions.add(question);
         question = questionRepository.findById(57L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
-        selectedQuestions.add(question);
-        question = questionRepository.findById(91L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
         selectedQuestions.add(question);
         question = questionRepository.findById(34L).orElseThrow(() -> new CommonException(ExceptionType.QUESTION_NOT_FOUND));
         selectedQuestions.add(question);
