@@ -131,30 +131,45 @@
   - Mattermost
   - Webex
 
+---
+
+
+### 4️⃣ Architecture
+
+![아키텍처](https://github.com/sujeong1201/TING/assets/37768793/ab440167-468b-427c-8e14-a1795428e187)
+
 
 ---
 
 
 ### 4️⃣ ERD
 
-![ERD](img/ERD.png)
+![ERD](https://github.com/sujeong1201/TING/assets/37768793/49b8bf05-7619-4b71-a154-d0cfbd9b651c)
 
 ---
 
 ### 5️⃣ 서비스 화면
 
 - 메인<br>
-![메인](img/main.png)
+![메인 화면](https://github.com/sujeong1201/TING/assets/37768793/858e924c-f2a2-41d9-9c2f-2b52b59a1006)
 <br>
 
 - 매칭<br>
-![매칭](img/matching.png)
+![소개팅 진행 화면](https://github.com/sujeong1201/TING/assets/37768793/770d376c-c822-4c1d-89a3-7db66a5ca937)
 <br>
 
 - 채팅<br>
-![채팅](img/chat.png)
+![채팅방, 프로필 화면](https://github.com/sujeong1201/TING/assets/37768793/9daf9019-8541-4236-841e-1f240087f1f3)
 <br>
 
 - 아이템샵<br>
-![아이템샵](img/item.png)
+![아이템샵 화면](https://github.com/sujeong1201/TING/assets/37768793/ef3ac574-5856-4c0f-a448-c13a9b980aed)
+<br>
+
+- 커뮤니티<br>
+![논쟁 게시판 화면](https://github.com/sujeong1201/TING/assets/37768793/8c8cce23-34ce-488f-87fe-50f1012dc441)
+<br>
+
+- 마이페이지<br>
+![마이페이지 화면](https://github.com/sujeong1201/TING/assets/37768793/a961574c-deec-454a-bb5c-b3a7f2427881)
 <br>
